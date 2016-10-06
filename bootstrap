@@ -20,11 +20,21 @@ main(_) ->
     Deps = get_deps(),
     [fetch_and_compile(Dep, Deps) || Dep <- BaseDeps],
 
+    %% To check whether a build was triggered by cron, examine the TRAVIS_EVENT_TYPE
+    %% environment variable to see if it has the value cron.
+    %% https://docs.travis-ci.com/user/cron-jobs/
+    Profile = case os:getenv("TRAVIS_EVENT_TYPE") of
+                    "cron" -> "nightly";
+                    _ -> "bootstrap"
+              end,
+
     %% Build rebar3 modules with compile:file
-    bootstrap_rebar3(),
+    bootstrap_rebar3(Profile),
 
     %% Build rebar.app from rebar.app.src
-    {ok, App} = rebar_app_info:new(rebar, "3.3.1", filename:absname("_build/default/lib/rebar/")),
+    {ok, App} = rebar_app_info:new(rebar, "3.3.1",
+                                   filename:absname(
+                                        filename:join(["_build", Profile, "lib", "rebar"]))),
     rebar_otp_app:compile(rebar_state:new(), App),
 
     %% Because we are compiling files that are loaded already we want to silence
@@ -32,7 +42,7 @@ main(_) ->
     error_logger:tty(false),
 
     setup_env(),
-    os:putenv("REBAR_PROFILE", "bootstrap"),
+    os:putenv("REBAR_PROFILE", Profile),
     RegistryFile = default_registry_file(),
     case filelib:is_file(RegistryFile) of
         true ->
@@ -43,7 +53,6 @@ main(_) ->
 
     {ok, State} = rebar3:run(["compile"]),
     reset_env(),
-    os:putenv("REBAR_PROFILE", ""),
 
     DepsPaths = rebar_state:code_paths(State, all_deps),
     code:add_pathsa(DepsPaths),
@@ -51,12 +60,14 @@ main(_) ->
     rebar3:run(["clean", "-a"]),
     rebar3:run(["escriptize"]),
 
+    os:putenv("REBAR_PROFILE", ""),
+
     %% Done with compile, can turn back on error logger
     error_logger:tty(true),
 
     %% Finally, update executable perms for our script on *nix,
     %%  or write out script files on win32.
-    ec_file:copy("_build/default/bin/rebar3", "./rebar3"),
+    ec_file:copy(filename:join(["_build", Profile, "bin", "rebar3"]), "./rebar3"),
     case os:type() of
         {unix,_} ->
             [] = os:cmd("chmod u+x rebar3"),
@@ -175,15 +186,19 @@ compile_file(File, Opts) ->
             halt(1)
     end.
 
-bootstrap_rebar3() ->
-    filelib:ensure_dir("_build/default/lib/rebar/ebin/dummy.beam"),
-    code:add_path("_build/default/lib/rebar/ebin/"),
+bootstrap_rebar3(Profile) ->
+    filelib:ensure_dir(
+        filename:join(["_build", Profile, "lib", "rebar", "ebin", "dummy.beam"])),
+    code:add_path(
+        filename:join(["_build", Profile, "lib", "rebar", "ebin"])),
     ok = symlink_or_copy(filename:absname("src"),
-                         filename:absname("_build/default/lib/rebar/src")),
+                         filename:absname(
+                            filename:join(["_build", Profile, "lib", "rebar", "src"]))),
     Sources = ["src/rebar_resource.erl" | filelib:wildcard("src/*.erl")],
-    [compile_file(X, [{outdir, "_build/default/lib/rebar/ebin/"}
+    [compile_file(X, [{outdir, filename:join(["_build", Profile, "lib", "rebar", "ebin"])}
                      ,return | additional_defines()]) || X <- Sources],
-    code:add_patha(filename:absname("_build/default/lib/rebar/ebin")).
+    code:add_patha(filename:absname(
+        filename:join(["_build", Profile, "lib", "rebar", "ebin"]))).
 
 %%rebar.hrl
 -define(FMT(Str, Args), lists:flatten(io_lib:format(Str, Args))).
