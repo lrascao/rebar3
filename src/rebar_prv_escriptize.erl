@@ -185,6 +185,7 @@ get_app_beams(App, Path) ->
 
 get_extra(State) ->
     Extra = rebar_state:get(State, escript_incl_extra, []),
+    rebar_api:debug("including escript extra: ~p", [Extra]),
     lists:foldl(fun({Wildcard, Dir}, Files) ->
                         load_files(Wildcard, Dir) ++ Files
                 end, [], Extra).
