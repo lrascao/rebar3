@@ -36,4 +36,17 @@ deploy:
     on:
       repo: erlang/rebar3
       condition: $TRAVIS_EVENT_TYPE = cron && $TRAVIS_CRON_PROFILE = canary
+  - provider: s3
+    region: us-west-2
+    access_key_id: AKIAIUOJ27BHA5SPUUSA
+    secret_access_key:
+      secure: "Di2cvcl8cIWQ/idgFaaifINWJV/bMUMENYZQuA6TSITxAv5Yz/bRq2SmzfZXdLHEDlQs+5sNciVcHW8b1jQcIwHvmic3pgPbmZPCirkT/uhK7GNnUrb5XgoUKodG3XvI9f17yja2m7fFWa2EEi6knA/4rzdAQrhFguppK3GGY693kPdaCUUwJvSmBc5pGKPs1MWmDiW9l7Cvxrh8oeyesRa8NP85c95s0LclU7efEFAtt/NhrKoMyyuFT0MJ822UlJ//CbVxsWkkzjzMn7VvDPm32q4Fnj/ermDrh7+NV/ZF3v/dNwBPKXaDyvz0/s28BvL6M/H/hkfoaeQ5PvwdEdQmaYTJfStXluz4Uwi/08UPr9njC/4kQrDbw9Ojwgk1qNd6aCV9QXZDqhYdJtdUTuP3Y8/gxIDF55TH2rqk9HSKBO0mwCepPuPy2KBEJgZ63xZX/xLastNYsss3i8Ak6wSaLUC7Us0lzyKxjQtANHBqcvc+wdDyByZ4K5YRlI1bgyltK8KCybA8D63exNZ7r1plG7eX5TDrTqHz/+dr10p0YimM6Y7VAh7uGndtwoVKuaZ6APXoee3thV0hEEZP4HTC/d/v9V836mXfNJfsvGmyVDpRAa0KgkogHhzu0d0l5e2Tj3lceh3EqpSYfiiXiPqRHsUsg0GDn09SiI8WeCk="
+    skip_cleanup: true
+    local-dir: _build/nightly/bin
+    bucket: rebar3
+    upload-dir: nightly
+    acl: public_read
+    on:
+      repo: erlang/rebar3
+      condition: $TRAVIS_EVENT_TYPE = cron && $TRAVIS_CRON_PROFILE = nightly
 
