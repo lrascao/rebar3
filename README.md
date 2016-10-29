@@ -56,9 +56,19 @@ best experience you can get.
 A [getting started guide is maintained on the official documentation website](http://www.rebar3.org/docs/getting-started),
 but installing rebar3 can be done by any of the ways described below
 
-Nightly compiled version:
+Latest stable version:
 ```bash
 $ wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
+```
+
+Nightly compiled version:
+```bash
+$ wget https://s3.amazonaws.com/rebar3/nightly/rebar3 && chmod +x rebar3
+```
+
+Canary build (using the latest dependencies):
+```bash
+$ wget https://s3.amazonaws.com/rebar3/canary/rebar3 && chmod +x rebar3
 ```
 
 From Source (assuming you have a full Erlang install):
